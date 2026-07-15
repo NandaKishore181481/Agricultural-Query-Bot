@@ -1,0 +1,16 @@
+Flask
+Werkzeug
+python-dotenv
+openai
+google-generativeai
+requests
+deep-translator
+heyoo
+psycopg2-binary
+tensorflow
+gunicorn
+pillow
+beautifulsoup4
+googlesearch-python
+
+streamlit
