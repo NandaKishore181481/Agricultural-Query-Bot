@@ -4,9 +4,9 @@ RUN
 flask --app run.py --debug run
 ```
 
-# Build AI WhatsApp Bots with Pure Python
+# Build AI WhatsApp Bots & Web Apps with Pure Python
 
-This guide will walk you through the process of creating a WhatsApp bot using the Meta (formerly Facebook) Cloud API with pure Python, and Flask particular. We'll also integrate webhook events to receive messages in real-time and use OpenAI to generate AI responses. For more information on the structure of the Flask application, you can refer to [this documentation](https://github.com/daveebbelaar/python-whatsapp-bot/tree/main/app).
+This guide will walk you through the process of creating a hybrid application that functions both as a WhatsApp bot (using the Meta Cloud API) and a modern Web Application using pure Python and Flask. We integrate webhook events to receive WhatsApp messages in real-time and provide a responsive web frontend, both utilizing OpenAI/Gemini for AI responses and a custom image classification model. For more information on the structure of the Flask application, you can refer to [this documentation](https://github.com/daveebbelaar/python-whatsapp-bot/tree/main/app).
 
 ## Prerequisites
 

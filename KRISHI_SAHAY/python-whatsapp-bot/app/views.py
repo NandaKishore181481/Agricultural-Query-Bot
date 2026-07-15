@@ -1,13 +1,18 @@
 import logging
 import json
 
-from flask import Blueprint, request, jsonify, current_app, session
+from flask import Blueprint, request, jsonify, current_app, session, render_template
 
 from .decorators.security import signature_required
 from .utils.whatsapp_utils import (
     process_whatsapp_message,
     is_valid_whatsapp_message,
 )
+import os
+from werkzeug.utils import secure_filename
+from .services.openai_service import generate_response
+from .utils.model.model import predict_image_class
+from .utils.whatsapp_utils import translate_dict
 
 webhook_blueprint = Blueprint("webhook", __name__)
 
@@ -86,3 +91,57 @@ def webhook_get():
 @signature_required
 def webhook_post():
     return handle_message()
+
+
+@webhook_blueprint.route("/", methods=["GET"])
+def index():
+    return render_template("index.html")
+
+
+@webhook_blueprint.route("/api/chat", methods=["POST"])
+def api_chat():
+    data = request.get_json()
+    message = data.get("message", "")
+    lang = data.get("lang", "en")
+    
+    # We pass a dummy 'wa_no' since web users don't have a phone number yet.
+    # In a real app we'd use session IDs.
+    wa_no = session.get("user_id", "web_user")
+    wa_name = "Web User"
+    
+    response_text = generate_response(message, wa_no, wa_name, lang=lang)
+    return jsonify({"response": response_text})
+
+
+@webhook_blueprint.route("/api/predict", methods=["POST"])
+def api_predict():
+    if "image" not in request.files:
+        return jsonify({"error": "No image provided"}), 400
+        
+    file = request.files["image"]
+    lang = request.form.get("lang", "en")
+    
+    if file.filename == "":
+        return jsonify({"error": "Empty filename"}), 400
+        
+    filename = secure_filename(file.filename)
+    filepath = os.path.join(os.getcwd(), filename)
+    file.save(filepath)
+    
+    prediction = predict_image_class(filepath)
+    
+    if prediction is None:
+        return jsonify({"error": "Could not identify the plant. Please make sure it is a tomato or pepper leaf."}), 400
+        
+    if prediction == "healthy":
+        healthy_map = {
+            "en": "✅ The plant appears to be healthy! ☘️",
+            "hi": "✅ पौधा स्वस्थ दिखता है! ☘️",
+            "te": "✅ మొక్క ఆరోగ్యంగా ఉన్నట్లు కనిపిస్తోంది! ☘️",
+        }
+        return jsonify({"status": "healthy", "message": healthy_map.get(lang, healthy_map["en"])})
+        
+    if lang in ["hi", "te"]:
+        prediction = translate_dict(prediction, lang=lang)
+        
+    return jsonify({"status": "disease", "prediction": prediction})
