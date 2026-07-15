@@ -9,6 +9,10 @@ import tempfile
 from app.services.openai_service import generate_response
 from app.utils.model.model import predict_image_class
 from app.utils.core_utils import translate_dict
+from app.utils.database import initialize_database
+
+# Initialize the database so the 'threads' and 'users' tables are created
+initialize_database()
 
 st.set_page_config(page_title="Krishi Sahay", page_icon="☘️", layout="centered")
 
