@@ -6,7 +6,6 @@ google-generativeai
 requests
 deep-translator
 heyoo
-psycopg2-binary
 tensorflow-cpu
 gunicorn
 pillow

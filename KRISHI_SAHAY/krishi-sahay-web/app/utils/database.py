@@ -1,8 +1,11 @@
 import os
 import json
 import sqlite3
-import psycopg2
-from psycopg2.extras import RealDictCursor
+try:
+    import psycopg2
+    from psycopg2.extras import RealDictCursor
+except ImportError:
+    psycopg2 = None
 from dotenv import load_dotenv
 
 load_dotenv()
