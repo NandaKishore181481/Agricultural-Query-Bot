@@ -7,7 +7,7 @@ requests
 deep-translator
 heyoo
 psycopg2-binary
-tensorflow-cpu==2.15.0
+tensorflow==2.15.0
 gunicorn
 pillow
 beautifulsoup4
