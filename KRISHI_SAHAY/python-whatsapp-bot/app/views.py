@@ -4,7 +4,7 @@ import json
 from flask import Blueprint, request, jsonify, current_app, session, render_template
 
 from .decorators.security import signature_required
-from .utils.whatsapp_utils import (
+from .utils.core_utils import (
     process_whatsapp_message,
     is_valid_whatsapp_message,
 )
@@ -12,7 +12,7 @@ import os
 from werkzeug.utils import secure_filename
 from .services.openai_service import generate_response
 from .utils.model.model import predict_image_class
-from .utils.whatsapp_utils import translate_dict
+from .utils.core_utils import translate_dict
 
 webhook_blueprint = Blueprint("webhook", __name__)
 
