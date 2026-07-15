@@ -15,7 +15,7 @@ This is the main application directory containing all the core files for our Fla
   - `security.py`: Houses security-related decorators, for example, to check the validity of incoming requests.
 
 - `utils/`: Utility functions and helpers to aid different functionalities in the application.
-  - `whatsapp_utils.py`: Contains utility functions specifically for handling WhatsApp related operations.
+  - `core_utils.py`: Contains utility functions specifically for handling WhatsApp related operations.
 
 - `views.py`: Represents the main blueprint of the app where the endpoints are defined. In Flask, a blueprint is a way to organize related views and operations. Think of it as a mini-application within the main application with its routes and errors.
 
