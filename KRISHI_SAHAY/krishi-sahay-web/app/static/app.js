@@ -239,7 +239,7 @@ const fileInput = document.getElementById('file-input');
 const cameraInput = document.getElementById('camera-input');
 const previewContainer = document.getElementById('preview-container');
 const imagePreview = document.getElementById('image-preview');
-const scanAnim = document.getElementById('scan-anim');
+const scanAnim = document.getElementById('scanning-anim');
 const resultsCard = document.getElementById('results-card');
 
 let currentFile = null;
