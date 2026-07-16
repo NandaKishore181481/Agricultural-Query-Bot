@@ -16,7 +16,7 @@ def predict_image_class(image_path):
         import PIL.Image
         img = PIL.Image.open(image_path)
         
-        # Use Gemini 1.5 Flash for fast, free, multi-modal analysis
+        # Use gemini-1.5-flash (Requires google-generativeai>=0.7.2)
         model = genai.GenerativeModel("gemini-1.5-flash")
         
         prompt = """

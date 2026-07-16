@@ -2,7 +2,7 @@ Flask
 Werkzeug
 python-dotenv
 openai
-google-generativeai
+google-generativeai>=0.7.2
 requests
 deep-translator
 heyoo
