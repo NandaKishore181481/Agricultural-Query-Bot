@@ -1,23 +1,23 @@
 import os
 import logging
-import google.generativeai as genai
+import json
+import base64
+import requests
 from .dict import return_disease, show, get_dict
 
-# Configure Gemini
 api_key = os.getenv("GEMINI_API_KEY")
-if api_key:
-    genai.configure(api_key=api_key)
 
 def predict_image_class(image_path):
     if not api_key:
         return {"error": "GEMINI_API_KEY is missing from environment variables."}
         
     try:
-        import PIL.Image
-        img = PIL.Image.open(image_path)
-        
-        # Use gemini-1.5-flash (Requires google-generativeai>=0.7.2)
-        model = genai.GenerativeModel("gemini-pro-vision")
+        # Read the image and encode it to base64
+        with open(image_path, "rb") as image_file:
+            encoded_string = base64.b64encode(image_file.read()).decode("utf-8")
+            
+        # Call Gemini REST API directly to bypass any old SDK version issues
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={api_key}"
         
         prompt = """
         You are an expert agricultural AI. 
@@ -34,15 +34,41 @@ def predict_image_class(image_path):
         Do not include any other text, markdown, or punctuation.
         """
         
-        response = model.generate_content([prompt, img])
-        result = response.text.strip().replace("\"", "").replace("`", "")
+        payload = {
+            "contents": [
+                {
+                    "parts": [
+                        {"text": prompt},
+                        {
+                            "inline_data": {
+                                "mime_type": "image/jpeg",
+                                "data": encoded_string
+                            }
+                        }
+                    ]
+                }
+            ]
+        }
         
+        headers = {"Content-Type": "application/json"}
+        
+        response = requests.post(url, headers=headers, data=json.dumps(payload))
+        response_data = response.json()
+        
+        if response.status_code != 200:
+            logging.error(f"Gemini API REST Error: {response_data}")
+            return {"error": f"API Error {response.status_code}: {response_data.get('error', {}).get('message', 'Unknown')}"}
+            
+        try:
+            result = response_data["candidates"][0]["content"]["parts"][0]["text"].strip().replace("\"", "").replace("`", "")
+        except KeyError:
+            return {"error": "Invalid response format from Gemini API."}
+            
         logging.info(f"Gemini predicted: {result}")
         
         if "healthy" in result.lower():
             return "healthy"
             
-        # Try to match the exact string to our dict
         valid_keys = [
             "Downey Mildew", 
             "Pepper__bell___Bacterial_spot", 
@@ -53,7 +79,6 @@ def predict_image_class(image_path):
         if result in valid_keys:
             return get_dict(result)
             
-        # Fallback if it slightly hallucinates the string
         for key in valid_keys:
             if key.lower() in result.lower() or result.lower() in key.lower():
                 return get_dict(key)
