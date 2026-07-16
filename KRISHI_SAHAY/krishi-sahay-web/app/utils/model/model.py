@@ -42,14 +42,13 @@ from .dict import return_disease, show, get_dict
 def predict_image_class(image_path):
     model = _load_model()
     if model is None:
-        logging.error("Model not available for prediction.")
-        return None
+        return {"error": "TensorFlow model failed to load. Check server logs."}
 
     try:
-        from keras.preprocessing import image as keras_image
+        from tensorflow.keras.utils import load_img, img_to_array
 
-        img = keras_image.load_img(image_path, target_size=(160, 160))
-        img_array = keras_image.img_to_array(img)
+        img = load_img(image_path, target_size=(160, 160))
+        img_array = img_to_array(img)
         img_array = np.expand_dims(img_array, axis=0)
         img_array /= 255.0  # Normalize the image
 
@@ -87,4 +86,4 @@ def predict_image_class(image_path):
             return output_dict
     except Exception as e:
         logging.error(f"Prediction failed: {e}")
-        return None
+        return {"error": f"Internal Model Error: {str(e)}"}

@@ -133,6 +133,9 @@ def api_predict():
     if prediction is None:
         return jsonify({"error": "Could not identify the plant. Please make sure it is a tomato or pepper leaf."}), 400
         
+    if isinstance(prediction, dict) and "error" in prediction:
+        return jsonify({"error": prediction["error"]}), 400
+        
     if prediction == "healthy":
         healthy_map = {
             "en": "✅ The plant appears to be healthy! ☘️",
