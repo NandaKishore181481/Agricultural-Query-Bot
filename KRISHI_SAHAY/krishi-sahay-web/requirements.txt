@@ -6,7 +6,7 @@ google-generativeai
 requests
 deep-translator
 heyoo
-tensorflow
+tensorflow-cpu
 gunicorn
 pillow
 beautifulsoup4

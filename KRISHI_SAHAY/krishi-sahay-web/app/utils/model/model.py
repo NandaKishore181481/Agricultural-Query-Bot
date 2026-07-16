@@ -9,7 +9,6 @@ MODEL_DIR = os.path.dirname(os.path.abspath(__file__))
 # Lazy-load the model to avoid crashing at import if tensorflow is missing
 _model = None
 
-
 def _load_model():
     global _model
     if _model is not None:
@@ -27,6 +26,12 @@ def _load_model():
     _model.load_weights(weights_path)
     logging.info("TensorFlow model loaded successfully.")
     return _model
+
+# Eagerly load the model when the server starts up
+try:
+    _load_model()
+except Exception as e:
+    logging.error(f"Failed to eagerly load model at startup: {e}")
 
 from .dict import return_disease, show, get_dict
 
@@ -79,3 +84,4 @@ def predict_image_class(image_path):
     except Exception as e:
         logging.error(f"Prediction failed: {e}")
         return {"error": f"Internal Model Error: {str(e)}"}
+
