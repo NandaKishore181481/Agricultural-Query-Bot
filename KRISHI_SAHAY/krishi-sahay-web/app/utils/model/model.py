@@ -1,105 +1,66 @@
-import numpy as np
 import os
-import json
 import logging
-
-# Force TensorFlow 2.16+ to use legacy Keras 2 to parse the old .json model
-os.environ["TF_USE_LEGACY_KERAS"] = "1"
-
-# Get the directory where this file lives
-MODEL_DIR = os.path.dirname(os.path.abspath(__file__))
-
-# Lazy-load the model to avoid crashing at import if tensorflow is missing
-_model = None
-
-def _load_model():
-    global _model
-    if _model is not None:
-        return _model
-    
-    import tensorflow as tf
-    # Limit threads to reduce memory overhead on Render's 512MB free tier
-    tf.config.threading.set_intra_op_parallelism_threads(1)
-    tf.config.threading.set_inter_op_parallelism_threads(1)
-    
-    from tensorflow.keras.models import model_from_json
-
-    json_path = os.path.join(MODEL_DIR, "new1model_architecture.json")
-    weights_path = os.path.join(MODEL_DIR, "new1model_weights.h5")
-
-    with open(json_path, "r") as f:
-        loaded_model_json = f.read()
-
-    _model = model_from_json(loaded_model_json)
-    _model.load_weights(weights_path)
-    logging.info("TensorFlow model loaded successfully.")
-    
-    # Run a dummy prediction to force TensorFlow to allocate memory now,
-    # rather than spiking and causing an OOM kill during a user request.
-    try:
-        dummy_input = np.zeros((1, 160, 160, 3), dtype=np.float32)
-        _model.predict(dummy_input, verbose=0)
-        logging.info("Dummy prediction successful. Memory pre-allocated.")
-    except Exception as e:
-        logging.warning(f"Dummy prediction failed: {e}")
-        
-    return _model
-
-# Eagerly load the model when the server starts up
-try:
-    _load_model()
-except Exception as e:
-    logging.error(f"Failed to eagerly load model at startup: {e}")
-
+import google.generativeai as genai
 from .dict import return_disease, show, get_dict
 
-# Function to predict the class of an image
+# Configure Gemini
+api_key = os.getenv("GEMINI_API_KEY")
+if api_key:
+    genai.configure(api_key=api_key)
+
 def predict_image_class(image_path):
+    if not api_key:
+        return {"error": "GEMINI_API_KEY is missing from environment variables."}
+        
     try:
-        model = _load_model()
-    except Exception as e:
-        return {"error": f"Model Load Error: {str(e)}"}
-
-    try:
-        from tensorflow.keras.utils import load_img, img_to_array
-
-        img = load_img(image_path, target_size=(160, 160))
-        img_array = img_to_array(img)
-        img_array = np.expand_dims(img_array, axis=0)
-        img_array /= 255.0  # Normalize the image
-
-        predictions = model.predict(img_array)
-
-        class_idx = int(np.argmax(predictions[0]))
-        confidence = float(predictions[0][class_idx])
-        logging.info(f"Predicted class index: {class_idx}, confidence: {confidence:.2f}")
-
-        # The model will return its highest confidence prediction.
-        # Removed strict confidence threshold so it always predicts something.
-        # This prevents generic "Could not identify" errors on real but blurry leaves.
-
-        # These keys MUST match exactly what get_dict() expects
-        class_labels = [
-            "Downey Mildew",                        # index 0
-            "Pepper__bell___Bacterial_spot",        # index 1
-            "Pepper__bell___healthy",               # index 2
-            "Tomato__Tomato_YellowLeaf__Curl_Virus",# index 3
-            "Tomato_healthy",                       # index 4
-        ]
-
-        disease_type = class_labels[class_idx]
-        logging.info(f"Disease type: {disease_type}")
-
-        if disease_type in (
-            "Tomato_healthy",
-            "Pepper__bell___healthy",
-        ):
-            print("Given plant is a healthy plant")
+        import PIL.Image
+        img = PIL.Image.open(image_path)
+        
+        # Use Gemini 1.5 Flash for fast, free, multi-modal analysis
+        model = genai.GenerativeModel("gemini-1.5-flash")
+        
+        prompt = """
+        You are an expert agricultural AI. 
+        Analyze this plant leaf image. Is it healthy or does it have a disease?
+        You MUST respond with exactly one of the following exact strings and nothing else:
+        - "Downey Mildew"
+        - "Pepper__bell___Bacterial_spot"
+        - "Tomato__Tomato_YellowLeaf__Curl_Virus"
+        - "Tomato__Tomato_mosaic_virus"
+        - "healthy"
+        
+        If it is a healthy tomato or pepper leaf, respond with "healthy".
+        If it does not clearly match one of these, make your best guess among these options.
+        Do not include any other text, markdown, or punctuation.
+        """
+        
+        response = model.generate_content([prompt, img])
+        result = response.text.strip().replace("\"", "").replace("`", "")
+        
+        logging.info(f"Gemini predicted: {result}")
+        
+        if "healthy" in result.lower():
             return "healthy"
-        else:
-            output_dict = get_dict(disease_type)
-            return output_dict
+            
+        # Try to match the exact string to our dict
+        valid_keys = [
+            "Downey Mildew", 
+            "Pepper__bell___Bacterial_spot", 
+            "Tomato__Tomato_YellowLeaf__Curl_Virus", 
+            "Tomato__Tomato_mosaic_virus"
+        ]
+        
+        if result in valid_keys:
+            return get_dict(result)
+            
+        # Fallback if it slightly hallucinates the string
+        for key in valid_keys:
+            if key.lower() in result.lower() or result.lower() in key.lower():
+                return get_dict(key)
+                
+        return {"error": f"Model could not confidently classify the disease. It said: {result}"}
+        
     except Exception as e:
-        logging.error(f"Prediction failed: {e}")
-        return {"error": f"Internal Model Error: {str(e)}"}
+        logging.error(f"Gemini prediction failed: {e}")
+        return {"error": f"AI API Error: {str(e)}"}
 
