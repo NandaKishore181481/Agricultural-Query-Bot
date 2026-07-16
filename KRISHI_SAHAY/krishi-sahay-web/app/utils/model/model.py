@@ -47,11 +47,11 @@ def predict_image_class(image_path):
             ]
         }
             
-        # Since free tier only has access to gemini-flash-latest, we just retry the same model
+        # Since free tier has limit 0 for gemini-flash-latest (which routes to 2.0-flash), we must use flash-lite
         fallback_models = [
-            "gemini-flash-latest", 
-            "gemini-flash-latest", 
-            "gemini-flash-latest"
+            "gemini-flash-lite-latest", 
+            "gemini-flash-lite-latest", 
+            "gemini-flash-lite-latest"
         ]
         
         response_data = None
