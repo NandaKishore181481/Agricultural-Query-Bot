@@ -71,8 +71,6 @@ sqlparse==0.4.4
 starlette==0.36.3
 tensorboard==2.15.2
 tensorboard-data-server==0.7.2
-tensorflow==2.15.0
-tensorflow-estimator==2.15.0
 termcolor==2.4.0
 tqdm==4.66.1
 twilio==8.11.1
