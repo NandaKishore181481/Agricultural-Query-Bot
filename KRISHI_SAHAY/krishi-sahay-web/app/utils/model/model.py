@@ -3,6 +3,9 @@ import os
 import json
 import logging
 
+# Force TensorFlow 2.16+ to use legacy Keras 2 to parse the old .json model
+os.environ["TF_USE_LEGACY_KERAS"] = "1"
+
 # Get the directory where this file lives
 MODEL_DIR = os.path.dirname(os.path.abspath(__file__))
 

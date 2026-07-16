@@ -11,3 +11,4 @@ gunicorn
 pillow
 beautifulsoup4
 googlesearch-python
+tf-keras
