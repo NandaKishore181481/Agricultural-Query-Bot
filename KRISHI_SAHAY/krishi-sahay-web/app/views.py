@@ -115,36 +115,40 @@ def api_chat():
 
 @webhook_blueprint.route("/api/predict", methods=["POST"])
 def api_predict():
-    if "image" not in request.files:
-        return jsonify({"error": "No image provided"}), 400
+    try:
+        if "image" not in request.files:
+            return jsonify({"error": "No image provided"}), 400
+            
+        file = request.files["image"]
+        lang = request.form.get("lang", "en")
         
-    file = request.files["image"]
-    lang = request.form.get("lang", "en")
-    
-    if file.filename == "":
-        return jsonify({"error": "Empty filename"}), 400
+        if file.filename == "":
+            return jsonify({"error": "Empty filename"}), 400
+            
+        filename = secure_filename(file.filename)
+        filepath = os.path.join(os.getcwd(), filename)
+        file.save(filepath)
         
-    filename = secure_filename(file.filename)
-    filepath = os.path.join(os.getcwd(), filename)
-    file.save(filepath)
-    
-    prediction = predict_image_class(filepath)
-    
-    if prediction is None:
-        return jsonify({"error": "Could not identify the plant. Please make sure it is a tomato or pepper leaf."}), 400
+        prediction = predict_image_class(filepath)
         
-    if isinstance(prediction, dict) and "error" in prediction:
-        return jsonify({"error": prediction["error"]}), 400
-        
-    if prediction == "healthy":
-        healthy_map = {
-            "en": "✅ The plant appears to be healthy! ☘️",
-            "hi": "✅ पौधा स्वस्थ दिखता है! ☘️",
-            "te": "✅ మొక్క ఆరోగ్యంగా ఉన్నట్లు కనిపిస్తోంది! ☘️",
-        }
-        return jsonify({"status": "healthy", "message": healthy_map.get(lang, healthy_map["en"])})
-        
-    if lang in ["hi", "te"]:
-        prediction = translate_dict(prediction, lang=lang)
-        
-    return jsonify({"status": "disease", "prediction": prediction})
+        if prediction is None:
+            return jsonify({"error": "Could not identify the plant. Please make sure it is a tomato or pepper leaf."}), 400
+            
+        if isinstance(prediction, dict) and "error" in prediction:
+            return jsonify({"error": prediction["error"]}), 400
+            
+        if prediction == "healthy":
+            healthy_map = {
+                "en": "✅ The plant appears to be healthy! ☘️",
+                "hi": "✅ यह पौधा स्वस्थ लग रहा है! ☘️",
+                "te": "✅ ఈ మొక్క ఆరోగ్యంగా ఉన్నట్లు కనిపిస్తోంది! ☘️",
+            }
+            return jsonify({"status": "healthy", "message": healthy_map.get(lang, healthy_map["en"])})
+            
+        if lang in ["hi", "te"]:
+            prediction = translate_dict(prediction, lang=lang)
+            
+        return jsonify({"status": "disease", "prediction": prediction})
+    except Exception as e:
+        import traceback
+        return jsonify({"error": f"Server Crash: {str(e)}\n{traceback.format_exc()}"}), 400
