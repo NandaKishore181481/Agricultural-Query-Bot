@@ -219,10 +219,21 @@
                     <h2>Crop Disease Scanner</h2>
                     <p>Upload a clear photo of the affected plant leaf.</p>
                     
-                    <div class="drop-zone" id="drop-zone" onclick="document.getElementById('file-input').click()">
+                    <div class="drop-zone" id="drop-zone">
                         <i class="ph ph-upload-simple drop-icon"></i>
-                        <span class="drop-text">Drag & drop image here or click to browse</span>
+                        <span class="drop-text">Drag & drop image here or click an option below</span>
+                        
+                        <div class="upload-options" style="display: flex; gap: 16px; justify-content: center; margin-top: 20px;">
+                            <button class="btn btn-secondary glass-btn" onclick="document.getElementById('file-input').click()">
+                                <i class="ph-fill ph-image"></i> Upload Gallery
+                            </button>
+                            <button class="btn btn-primary" onclick="document.getElementById('camera-input').click()">
+                                <i class="ph-fill ph-camera"></i> Take Photo
+                            </button>
+                        </div>
+
                         <input type="file" id="file-input" hidden accept="image/jpeg, image/png, image/jpg" onchange="handleFileSelect(event)">
+                        <input type="file" id="camera-input" hidden accept="image/*" capture="environment" onchange="handleFileSelect(event)">
                     </div>
                     
                     <div class="image-preview-container" id="preview-container" style="display: none;">
