@@ -51,8 +51,7 @@ def predict_image_class(image_path):
         fallback_models = [
             "gemini-flash-latest", 
             "gemini-2.5-flash", 
-            "gemini-2.0-flash", 
-            "gemini-pro-latest"
+            "gemini-2.0-flash"
         ]
         
         response_data = None
@@ -62,11 +61,16 @@ def predict_image_class(image_path):
         for model_name in fallback_models:
             url = f"https://generativelanguage.googleapis.com/v1beta/models/{model_name}:generateContent?key={api_key}"
             try:
-                response = requests.post(url, headers=headers, data=json.dumps(payload), timeout=10)
+                # Use 5 second timeout to ensure the entire fallback loop completes BEFORE Gunicorn's 30s kill switch!
+                response = requests.post(url, headers=headers, data=json.dumps(payload), timeout=5)
                 status_code = response.status_code
-                response_data = response.json()
                 
-                if status_code == 200:
+                try:
+                    response_data = response.json()
+                except Exception:
+                    response_data = None
+                
+                if status_code == 200 and response_data:
                     break
                 else:
                     logging.warning(f"Model {model_name} failed with {status_code}. Retrying...")

@@ -515,7 +515,7 @@ def process_whatsapp_message(body):
                 "data": audio_bytes
             }
             
-            fallback_models = ["gemini-flash-latest", "gemini-2.5-flash", "gemini-2.0-flash", "gemini-pro-latest"]
+            fallback_models = ["gemini-flash-latest", "gemini-2.5-flash", "gemini-2.0-flash"]
             response_trans = None
             
             for model_name in fallback_models:
