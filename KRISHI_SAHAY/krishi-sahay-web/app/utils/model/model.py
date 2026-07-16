@@ -17,7 +17,7 @@ def predict_image_class(image_path):
         img = PIL.Image.open(image_path)
         
         # Use gemini-1.5-flash (Requires google-generativeai>=0.7.2)
-        model = genai.GenerativeModel("gemini-1.5-flash")
+        model = genai.GenerativeModel("gemini-pro-vision")
         
         prompt = """
         You are an expert agricultural AI. 
