@@ -521,10 +521,10 @@ def process_whatsapp_message(body):
             for model_name in fallback_models:
                 try:
                     model = genai.GenerativeModel(model_name)
-                    response_trans = model.generate_content([
-                        "Please transcribe this audio exactly as it is spoken, in the same language as the speaker.",
-                        audio_data
-                    ])
+                    response_trans = model.generate_content(
+                        ["Please transcribe this audio exactly as it is spoken, in the same language as the speaker.", audio_data],
+                        request_options={"timeout": 5}
+                    )
                     break
                 except Exception as e:
                     logging.warning(f"Transcription model {model_name} failed: {str(e)}")

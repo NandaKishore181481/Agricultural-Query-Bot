@@ -186,10 +186,10 @@ def api_transcribe():
         for model_name in fallback_models:
             try:
                 model = genai.GenerativeModel(model_name)
-                response_trans = model.generate_content([
-                    "Please transcribe this audio exactly as it is spoken.",
-                    audio_data
-                ])
+                response_trans = model.generate_content(
+                    ["Please transcribe this audio exactly as it is spoken.", audio_data],
+                    request_options={"timeout": 5}
+                )
                 break # Success!
             except Exception as e:
                 import logging
