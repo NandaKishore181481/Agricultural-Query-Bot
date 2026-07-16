@@ -12,6 +12,18 @@
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
     <!-- Custom CSS -->
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <style>
+        .recording {
+            animation: pulse-red 1.5s infinite;
+            background: rgba(255, 0, 0, 0.1);
+            color: #ff3333 !important;
+        }
+        @keyframes pulse-red {
+            0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 0, 0, 0.7); }
+            70% { transform: scale(1.1); box-shadow: 0 0 0 10px rgba(255, 0, 0, 0); }
+            100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 0, 0, 0); }
+        }
+    </style>
 </head>
 <body class="light-mode">
     
@@ -254,15 +266,22 @@
 
                 <!-- Results Card (Hidden by default) -->
                 <div class="results-section glass-panel" id="results-card" style="display: none;">
-                    <div class="result-header">
-                        <h2 id="disease-name">Tomato Yellow Leaf Curl Virus</h2>
+                <div class="result-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+                    <h2 id="disease-name" style="margin: 0;">Tomato Yellow Leaf Curl Virus</h2>
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <select id="result-lang-select" class="glass-input" style="padding: 5px 10px; font-size: 0.9rem;" onchange="translateResult()">
+                            <option value="en">English</option>
+                            <option value="hi">हिंदी</option>
+                            <option value="te">తెలుగు</option>
+                        </select>
                         <div class="confidence-badge">98% Match</div>
                     </div>
-                    
-                    <div class="severity-indicator">
-                        <span>Severity:</span>
-                        <div class="severity-bar high">High</div>
-                    </div>
+                </div>
+                
+                <div class="severity-indicator">
+                    <span>Severity:</span>
+                    <div class="severity-bar high">High</div>
+                </div>
                     
                     <div class="result-tabs">
                         <button class="tab-btn active" data-tab="info">Information</button>

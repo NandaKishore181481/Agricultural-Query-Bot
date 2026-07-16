@@ -152,3 +152,62 @@ def api_predict():
     except Exception as e:
         import traceback
         return jsonify({"error": f"Server Crash: {str(e)}\n{traceback.format_exc()}"}), 400
+
+
+@webhook_blueprint.route("/api/transcribe", methods=["POST"])
+def api_transcribe():
+    try:
+        if "audio" not in request.files:
+            return jsonify({"error": "No audio file provided"}), 400
+            
+        file = request.files["audio"]
+        filename = secure_filename("temp_audio_" + file.filename)
+        filepath = os.path.join(os.getcwd(), filename)
+        file.save(filepath)
+        
+        import google.generativeai as genai
+        gemini_key = os.getenv("GEMINI_API_KEY")
+        if not gemini_key:
+            return jsonify({"error": "GEMINI_API_KEY missing"}), 400
+            
+        genai.configure(api_key=gemini_key)
+        model = genai.GenerativeModel('gemini-flash-latest')
+        
+        audio_file = genai.upload_file(path=filepath)
+        response_trans = model.generate_content([
+            "Please transcribe this audio exactly as it is spoken.",
+            audio_file
+        ])
+        
+        # Cleanup
+        try:
+            os.remove(filepath)
+        except:
+            pass
+            
+        return jsonify({"text": response_trans.text.strip()})
+        
+    except Exception as e:
+        import traceback
+        return jsonify({"error": f"Transcription error: {str(e)}"}), 500
+
+
+@webhook_blueprint.route("/api/translate", methods=["POST"])
+def api_translate():
+    try:
+        data = request.json
+        if not data or "content" not in data or "lang" not in data:
+            return jsonify({"error": "Invalid payload"}), 400
+            
+        lang = data["lang"]
+        content = data["content"]
+        
+        # If English, just return it as is
+        if lang == "en":
+            return jsonify({"translated": content})
+            
+        translated = translate_dict(content, lang=lang)
+        return jsonify({"translated": translated})
+        
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500

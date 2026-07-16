@@ -88,59 +88,75 @@ function appendMessage(role, content) {
     chatMessages.scrollTop = chatMessages.scrollHeight;
 }
 
-// ====== SPEECH RECOGNITION ======
-function startVoiceRecognition() {
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if (!SpeechRecognition) {
-        alert("Sorry, your browser doesn't support voice recognition. Please try Chrome or Safari.");
+// ====== AUDIO RECORDING (MEDIA RECORDER) ======
+let mediaRecorder;
+let audioChunks = [];
+let isRecording = false;
+
+async function startVoiceRecognition() {
+    const micBtn = document.getElementById('mic-btn');
+    const inputField = document.getElementById('chat-input');
+    const micIcon = document.getElementById('mic-icon');
+
+    if (isRecording) {
+        // Stop recording
+        mediaRecorder.stop();
+        isRecording = false;
+        micBtn.classList.remove('recording');
+        micIcon.classList.remove('ph-stop');
+        micIcon.classList.add('ph-microphone');
+        inputField.placeholder = "Processing audio...";
         return;
     }
 
-    const recognition = new SpeechRecognition();
-    const micIcon = document.getElementById('mic-icon');
-    const inputField = document.getElementById('chat-input');
-    const langSelect = document.getElementById('lang-select');
-    
-    // Map our app languages to speech recognition languages
-    const langMap = {
-        'en': 'en-US',
-        'hi': 'hi-IN',
-        'te': 'te-IN'
-    };
-    recognition.lang = langMap[langSelect.value] || 'en-US';
-    recognition.interimResults = false;
-    recognition.maxAlternatives = 1;
+    try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        mediaRecorder = new MediaRecorder(stream);
+        audioChunks = [];
 
-    recognition.onstart = function() {
+        mediaRecorder.ondataavailable = (event) => {
+            if (event.data.size > 0) {
+                audioChunks.push(event.data);
+            }
+        };
+
+        mediaRecorder.onstop = async () => {
+            const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+            const formData = new FormData();
+            formData.append('audio', audioBlob, 'voice_message.webm');
+
+            try {
+                const response = await fetch('/api/transcribe', {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await response.json();
+                if (data.text) {
+                    inputField.value = data.text;
+                    sendMessage(); // Auto-send the transcribed message
+                } else if (data.error) {
+                    alert("Transcription error: " + data.error);
+                }
+            } catch (error) {
+                console.error("Transcription failed:", error);
+                alert("Failed to transcribe audio. Please check console.");
+            }
+            
+            inputField.placeholder = "Ask anything about farming...";
+            stream.getTracks().forEach(track => track.stop()); // Stop mic usage
+        };
+
+        mediaRecorder.start();
+        isRecording = true;
+        micBtn.classList.add('recording');
         micIcon.classList.remove('ph-microphone');
-        micIcon.classList.add('ph-waveform', 'text-yellow');
-        inputField.placeholder = "Listening...";
-    };
+        micIcon.classList.add('ph-stop');
+        inputField.placeholder = "Listening... Tap mic again to stop.";
 
-    recognition.onresult = function(event) {
-        const transcript = event.results[0][0].transcript;
-        inputField.value = transcript;
-    };
-
-    recognition.onspeechend = function() {
-        recognition.stop();
-    };
-
-    recognition.onend = function() {
-        micIcon.classList.add('ph-microphone');
-        micIcon.classList.remove('ph-waveform', 'text-yellow');
-        inputField.placeholder = "Ask anything about farming...";
-    };
-
-    recognition.onerror = function(event) {
-        console.error("Speech Recognition Error:", event.error);
-        alert("Voice recognition failed. Please ensure you have granted microphone permissions.");
-        micIcon.classList.add('ph-microphone');
-        micIcon.classList.remove('ph-waveform', 'text-yellow');
-        inputField.placeholder = "Ask anything about farming...";
-    };
-
-    recognition.start();
+    } catch (err) {
+        console.error("Mic access denied:", err);
+        alert("Microphone access is required to record voice. " + err);
+    }
 }
 
 function handleChatEnter(event) {
@@ -217,41 +233,45 @@ document.querySelectorAll('.prompt-chip').forEach(chip => {
 });
 
 
-// ====== DISEASE DETECTION LOGIC ======
+// ====== DISEASE SCANNER ======
 const dropZone = document.getElementById('drop-zone');
 const fileInput = document.getElementById('file-input');
+const cameraInput = document.getElementById('camera-input');
 const previewContainer = document.getElementById('preview-container');
 const imagePreview = document.getElementById('image-preview');
-const scanAnim = document.getElementById('scanning-anim');
+const scanAnim = document.getElementById('scan-anim');
 const resultsCard = document.getElementById('results-card');
-let currentFile = null;
 
-// Drag and drop events
+let currentFile = null;
+let currentRawDiseaseData = null; // Store original English data
+
+// Handle drag and drop
 dropZone.addEventListener('dragover', (e) => {
     e.preventDefault();
-    dropZone.style.background = 'rgba(46, 125, 50, 0.2)';
+    dropZone.classList.add('dragover');
 });
-dropZone.addEventListener('dragleave', (e) => {
-    e.preventDefault();
-    dropZone.style.background = 'rgba(46, 125, 50, 0.05)';
+
+dropZone.addEventListener('dragleave', () => {
+    dropZone.classList.remove('dragover');
 });
+
 dropZone.addEventListener('drop', (e) => {
     e.preventDefault();
-    dropZone.style.background = 'rgba(46, 125, 50, 0.05)';
-    if (e.dataTransfer.files.length > 0) {
-        handleFiles(e.dataTransfer.files[0]);
+    dropZone.classList.remove('dragover');
+    if (e.dataTransfer.files.length) {
+        handleFile(e.dataTransfer.files[0]);
     }
 });
 
-function handleFileSelect(event) {
-    if (event.target.files.length > 0) {
-        handleFiles(event.target.files[0]);
+function handleFileSelect(e) {
+    if (e.target.files.length) {
+        handleFile(e.target.files[0]);
     }
 }
 
-function handleFiles(file) {
-    if (!file.type.startsWith('image/')) {
-        alert("Please upload an image file.");
+function handleFile(file) {
+    if (!file.type.match('image.*')) {
+        alert("Please select an image file");
         return;
     }
     
@@ -266,23 +286,30 @@ function handleFiles(file) {
     reader.readAsDataURL(file);
 }
 
-function resetUpload() {
+function clearImage() {
     currentFile = null;
-    fileInput.value = '';
-    dropZone.style.display = 'block';
+    imagePreview.src = '';
+    dropZone.style.display = 'flex';
     previewContainer.style.display = 'none';
     resultsCard.style.display = 'none';
+    fileInput.value = '';
+    cameraInput.value = '';
 }
 
 async function analyzeImage() {
     if (!currentFile) return;
-    
+
+    // Show animation
+    scanAnim.style.display = 'flex';
+    resultsCard.style.display = 'none';
     document.getElementById('analyze-btn').disabled = true;
-    scanAnim.style.display = 'block';
+
+    const langSelect = document.getElementById('lang-select');
     
+    // Always fetch the result in English initially to store it for translation later
     const formData = new FormData();
     formData.append('image', currentFile);
-    formData.append('lang', langSelect.value);
+    formData.append('lang', 'en'); // Request raw english first
 
     try {
         const response = await fetch('/api/predict', {
@@ -296,23 +323,63 @@ async function analyzeImage() {
         document.getElementById('analyze-btn').disabled = false;
         
         if (data.status === "healthy") {
-            displayResults({
+            currentRawDiseaseData = {
                 Name: "Healthy Plant \u2705",
                 Plant: "Unknown (Appears Healthy)",
                 Description: "The uploaded leaf shows no visible signs of disease.",
                 Symptoms: "None",
                 Solutions: { Organic: ["Continue good agricultural practices."], Chemical: ["No action needed."] }
-            });
+            };
+            
+            // Set the dropdown to the top-nav language before displaying
+            document.getElementById('result-lang-select').value = langSelect.value;
+            await translateResult(); // Automatically translate if necessary
         } else if (data.prediction) {
-            displayResults(data.prediction);
+            currentRawDiseaseData = data.prediction;
+            document.getElementById('result-lang-select').value = langSelect.value;
+            await translateResult();
         } else {
-            alert(data.error || "Failed to analyze image.");
+            alert(data.error || "An error occurred during analysis.");
         }
-    } catch (error) {
-        console.error("Prediction Error:", error);
+    } catch (err) {
+        console.error("Scan error:", err);
         scanAnim.style.display = 'none';
         document.getElementById('analyze-btn').disabled = false;
         alert("Network error. Could not reach the server.");
+    }
+}
+
+async function translateResult() {
+    if (!currentRawDiseaseData) return;
+    
+    const targetLang = document.getElementById('result-lang-select').value;
+    
+    if (targetLang === 'en') {
+        displayResults(currentRawDiseaseData);
+        return;
+    }
+    
+    // Add loading indicator to name temporarily
+    const oldName = document.getElementById('disease-name').textContent;
+    document.getElementById('disease-name').textContent = "Translating...";
+    
+    try {
+        const response = await fetch('/api/translate', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ lang: targetLang, content: currentRawDiseaseData })
+        });
+        
+        const data = await response.json();
+        if (data.translated) {
+            displayResults(data.translated);
+        } else {
+            document.getElementById('disease-name').textContent = oldName;
+            alert("Translation failed.");
+        }
+    } catch (err) {
+        document.getElementById('disease-name').textContent = oldName;
+        alert("Translation network error.");
     }
 }
 
