@@ -17,7 +17,7 @@ def predict_image_class(image_path):
             encoded_string = base64.b64encode(image_file.read()).decode("utf-8")
             
         # Call Gemini REST API directly to bypass any old SDK version issues
-        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={api_key}"
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key={api_key}"
         
         prompt = """
         You are an expert agricultural AI. 
