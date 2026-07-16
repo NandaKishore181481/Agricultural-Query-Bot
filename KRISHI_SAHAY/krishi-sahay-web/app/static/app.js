@@ -88,6 +88,61 @@ function appendMessage(role, content) {
     chatMessages.scrollTop = chatMessages.scrollHeight;
 }
 
+// ====== SPEECH RECOGNITION ======
+function startVoiceRecognition() {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+        alert("Sorry, your browser doesn't support voice recognition. Please try Chrome or Safari.");
+        return;
+    }
+
+    const recognition = new SpeechRecognition();
+    const micIcon = document.getElementById('mic-icon');
+    const inputField = document.getElementById('chat-input');
+    const langSelect = document.getElementById('lang-select');
+    
+    // Map our app languages to speech recognition languages
+    const langMap = {
+        'en': 'en-US',
+        'hi': 'hi-IN',
+        'te': 'te-IN'
+    };
+    recognition.lang = langMap[langSelect.value] || 'en-US';
+    recognition.interimResults = false;
+    recognition.maxAlternatives = 1;
+
+    recognition.onstart = function() {
+        micIcon.classList.remove('ph-microphone');
+        micIcon.classList.add('ph-waveform', 'text-yellow');
+        inputField.placeholder = "Listening...";
+    };
+
+    recognition.onresult = function(event) {
+        const transcript = event.results[0][0].transcript;
+        inputField.value = transcript;
+    };
+
+    recognition.onspeechend = function() {
+        recognition.stop();
+    };
+
+    recognition.onend = function() {
+        micIcon.classList.add('ph-microphone');
+        micIcon.classList.remove('ph-waveform', 'text-yellow');
+        inputField.placeholder = "Ask anything about farming...";
+    };
+
+    recognition.onerror = function(event) {
+        console.error("Speech Recognition Error:", event.error);
+        alert("Voice recognition failed. Please ensure you have granted microphone permissions.");
+        micIcon.classList.add('ph-microphone');
+        micIcon.classList.remove('ph-waveform', 'text-yellow');
+        inputField.placeholder = "Ask anything about farming...";
+    };
+
+    recognition.start();
+}
+
 function handleChatEnter(event) {
     if (event.key === 'Enter') {
         sendMessage();

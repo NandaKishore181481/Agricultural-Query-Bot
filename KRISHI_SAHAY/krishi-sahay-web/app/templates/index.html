@@ -203,7 +203,9 @@
                     <div class="input-wrapper glass-input-wrapper">
                         <button class="icon-btn" title="Upload Image" onclick="switchView('disease-view')"><i class="ph ph-image"></i></button>
                         <input type="text" id="chat-input" placeholder="Ask anything about farming..." onkeypress="handleChatEnter(event)">
-                        <button class="icon-btn mic-btn" title="Voice Input"><i class="ph ph-microphone"></i></button>
+                        <button id="mic-btn" class="icon-btn mic-btn" title="Voice Input" onclick="startVoiceRecognition()">
+                            <i id="mic-icon" class="ph ph-microphone"></i>
+                        </button>
                         <button class="btn btn-primary send-btn" onclick="sendMessage()">
                             <i class="ph-fill ph-paper-plane-right"></i>
                         </button>
