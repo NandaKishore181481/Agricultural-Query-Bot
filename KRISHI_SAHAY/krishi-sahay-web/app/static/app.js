@@ -1,35 +1,51 @@
-// ====== VIEW SWITCHING LOGIC ======
-function switchView(targetId) {
-    // Hide all views
+// ====== NAVIGATION ======
+function switchView(viewId) {
+    // Update hash without triggering hashchange again
+    if(window.location.hash !== `#${viewId}`) {
+        window.history.pushState(null, null, `#${viewId}`);
+    }
+
     document.querySelectorAll('.view-section').forEach(section => {
         section.classList.remove('active');
     });
-    
-    // Deactivate all nav links
     document.querySelectorAll('.nav-item').forEach(item => {
         item.classList.remove('active');
     });
     
-    // Show target view
-    document.getElementById(targetId).classList.add('active');
+    document.getElementById(viewId).classList.add('active');
     
-    // Activate nav link if exists
-    const activeLink = document.querySelector(`.nav-item[data-target="${targetId}"]`);
-    if (activeLink) {
-        activeLink.classList.add('active');
-    }
+    // Find nav item (might be in mobile menu or desktop)
+    const navItems = document.querySelectorAll(`.nav-item[data-target="${viewId}"]`);
+    navItems.forEach(item => item.classList.add('active'));
 
-    // Scroll to top
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    // Close mobile menu if open
+    const navbar = document.querySelector('.navbar');
+    if(navbar) navbar.classList.remove('nav-open');
 }
 
-// Add event listeners to nav links
+// Handle browser back/forward and initial load
+window.addEventListener('hashchange', () => {
+    const hash = window.location.hash.substring(1);
+    if(hash) switchView(hash);
+});
+
+// Setup click listeners for navigation links
 document.querySelectorAll('.nav-item').forEach(item => {
     item.addEventListener('click', (e) => {
         e.preventDefault();
         const targetId = item.getAttribute('data-target');
         switchView(targetId);
     });
+});
+
+// Initial View Load based on URL hash
+window.addEventListener('DOMContentLoaded', () => {
+    const hash = window.location.hash.substring(1);
+    if(hash) {
+        switchView(hash);
+    } else {
+        switchView('home-view');
+    }
 });
 
 // ====== DARK MODE TOGGLE ======
@@ -286,4 +302,180 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
         btn.classList.add('active');
         document.getElementById('tab-' + btn.getAttribute('data-tab')).classList.add('active');
     });
+});
+
+// ====== WEATHER LOGIC ======
+async function fetchWeatherManual() {
+    const city = document.getElementById('weather-location-input').value;
+    if(!city) return;
+    try {
+        const geoRes = await fetch('https://geocoding-api.open-meteo.com/v1/search?name=' + city + '&count=1');
+        const geoData = await geoRes.json();
+        if(geoData.results && geoData.results.length > 0) {
+            const { latitude, longitude, name } = geoData.results[0];
+            getWeatherFromCoords(latitude, longitude, name);
+        } else {
+            alert('City not found!');
+        }
+    } catch(err) {
+        console.error(err);
+    }
+}
+
+function fetchWeatherGPS() {
+    if(navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+            (pos) => getWeatherFromCoords(pos.coords.latitude, pos.coords.longitude, 'Your Location'),
+            (err) => alert('Location access denied or failed.')
+        );
+    }
+}
+
+async function getWeatherFromCoords(lat, lon, locationName) {
+    document.getElementById('weather-location-input').value = locationName;
+    document.getElementById('weather-desc').innerText = 'Fetching...';
+    try {
+        const res = await fetch('https://api.open-meteo.com/v1/forecast?latitude='+lat+'&longitude='+lon+'&current=temperature_2m,relative_humidity_2m,precipitation,wind_speed_10m&timezone=auto');
+        const data = await res.json();
+        const current = data.current;
+        document.getElementById('weather-temp').innerText = current.temperature_2m + '°C';
+        document.getElementById('weather-humidity').innerText = current.relative_humidity_2m + '%';
+        document.getElementById('weather-wind').innerText = current.wind_speed_10m + ' km/h';
+        document.getElementById('weather-rain').innerText = current.precipitation > 0 ? 'High' : '0%';
+        document.getElementById('weather-desc').innerText = 'Updated Just Now';
+        document.getElementById('weather-advice').innerHTML = current.precipitation > 0 
+            ? 'Rain detected! Avoid spraying chemicals or fertilizers today. Ensure proper drainage in fields.'
+            : 'Conditions are dry. Good time for harvesting or spraying. Check soil moisture and irrigate if necessary.';
+    } catch (e) {
+        document.getElementById('weather-desc').innerText = 'Failed to load';
+    }
+}
+
+// ====== MANDI PRICES LOGIC ======
+const mandiData = [
+    { crop: 'Tomato', price: '₹45', trend: 'up', diff: '+₹5', market: 'Bowenpally Market' },
+    { crop: 'Onion', price: '₹30', trend: 'down', diff: '-₹2', market: 'Bowenpally Market' },
+    { crop: 'Rice (Sona Masuri)', price: '₹55', trend: 'neutral', diff: '₹0', market: 'Malakpet Market' },
+    { crop: 'Wheat', price: '₹28', trend: 'up', diff: '+₹1', market: 'Siddipet Market' },
+    { crop: 'Cotton', price: '₹7200', trend: 'up', diff: '+₹150', market: 'Warangal Market' },
+    { crop: 'Chilli', price: '₹150', trend: 'down', diff: '-₹10', market: 'Guntur Market' }
+];
+
+function renderMandi(data) {
+    const grid = document.getElementById('mandi-grid');
+    if(!grid) return;
+    grid.innerHTML = data.map(item => `
+        <div class='mandi-card glass-panel'>
+            <div class='crop-header'>
+                <h3>${item.crop}</h3>
+                <span class='trend ${item.trend}'><i class='ph-bold ph-arrow-${item.trend === 'up' ? 'up-right' : item.trend === 'down' ? 'down-right' : 'minus'}'></i> ${item.diff}</span>
+            </div>
+            <div class='price-big'>${item.price} <span>/ ${item.price.includes('7200') ? 'quintal' : 'kg'}</span></div>
+            <p class='market-name'><i class='ph ph-storefront'></i> ${item.market}</p>
+            <p class='date'>Updated: Today, 09:00 AM</p>
+        </div>
+    `).join('');
+}
+
+function filterMandi() {
+    const query = document.getElementById('mandi-search').value.toLowerCase();
+    const filtered = mandiData.filter(d => d.crop.toLowerCase().includes(query) || d.market.toLowerCase().includes(query));
+    renderMandi(filtered);
+}
+
+// ====== SCHEMES LOGIC ======
+const schemesData = [
+    { title: 'PM Kisan Samman Nidhi', desc: 'Financial benefit of ₹6,000 per year is provided to all landholding farmer families.', tags: ['Financial Aid', 'Central Govt'] },
+    { title: 'Rythu Bandhu', desc: 'Investment support scheme by providing a grant of ₹5,000 per acre per farmer each season.', tags: ['State Govt', 'Investment'] },
+    { title: 'Pradhan Mantri Fasal Bima Yojana', desc: 'Crop insurance scheme integrating multiple stakeholders on a single platform.', tags: ['Insurance', 'Central Govt'] },
+    { title: 'Kisan Credit Card', desc: 'Provides adequate and timely credit support from the banking system under a single window.', tags: ['Credit', 'Banking'] }
+];
+
+function renderSchemes(data) {
+    const list = document.getElementById('schemes-list');
+    if(!list) return;
+    list.innerHTML = data.map(item => `
+        <div class='scheme-card glass-panel'>
+            <div class='scheme-content'>
+                <h3>${item.title}</h3>
+                <p class='scheme-desc'>${item.desc}</p>
+                <div class='scheme-tags'>
+                    ${item.tags.map(t => `<span class='tag'>${t}</span>`).join('')}
+                </div>
+            </div>
+            <div class='scheme-action'>
+                <button class='btn btn-primary'>Check Eligibility</button>
+            </div>
+        </div>
+    `).join('');
+}
+
+function filterSchemes() {
+    const query = document.getElementById('scheme-search').value.toLowerCase();
+    const filtered = schemesData.filter(d => d.title.toLowerCase().includes(query) || d.desc.toLowerCase().includes(query));
+    renderSchemes(filtered);
+}
+
+// ====== DASHBOARD LOGIC ======
+function addCrop() {
+    const input = document.getElementById('new-crop-input');
+    const crop = input.value.trim();
+    if(crop) {
+        let crops = JSON.parse(localStorage.getItem('myCrops') || '["Tomato", "Bell Pepper"]');
+        if(!crops.includes(crop)) {
+            crops.push(crop);
+            localStorage.setItem('myCrops', JSON.stringify(crops));
+            renderCrops();
+        }
+        input.value = '';
+    }
+}
+
+function renderCrops() {
+    const container = document.getElementById('my-crops-list');
+    if(!container) return;
+    let crops = JSON.parse(localStorage.getItem('myCrops') || '["Tomato", "Bell Pepper"]');
+    container.innerHTML = crops.map(c => `<span class='crop-tag'>${c} <i class='ph ph-x' style='cursor:pointer' onclick='removeCrop("${c}")'></i></span>`).join('');
+}
+
+function removeCrop(crop) {
+    let crops = JSON.parse(localStorage.getItem('myCrops') || '[]');
+    crops = crops.filter(c => c !== crop);
+    localStorage.setItem('myCrops', JSON.stringify(crops));
+    renderCrops();
+}
+
+function updateRecentChats() {
+    const list = document.getElementById('recent-chats-list');
+    if(!list) return;
+    let chats = JSON.parse(localStorage.getItem('chatHistory') || '[]');
+    if(chats.length === 0) {
+        list.innerHTML = '<li>No recent consultations. Start chatting with the AI Assistant!</li>';
+    } else {
+        // Show last 3 messages from the user
+        const userChats = chats.filter(c => c.type === 'user').slice(-3).reverse();
+        list.innerHTML = userChats.map(c => `<li><i class='ph ph-chat-circle'></i> ${c.text.substring(0, 30)}... <span class='date'>Recent</span></li>`).join('');
+    }
+}
+
+// Hook into the existing appendMessage to save chat history
+if (typeof originalAppendMessage === 'undefined') {
+    window.originalAppendMessage = window.appendMessage;
+    window.appendMessage = function(sender, text, isHtml) {
+        if(window.originalAppendMessage) window.originalAppendMessage(sender, text, isHtml);
+        if(sender === 'user') {
+            let chats = JSON.parse(localStorage.getItem('chatHistory') || '[]');
+            chats.push({type: 'user', text: text});
+            localStorage.setItem('chatHistory', JSON.stringify(chats));
+            updateRecentChats();
+        }
+    }
+}
+
+// Init all
+window.addEventListener('DOMContentLoaded', () => {
+    renderMandi(mandiData);
+    renderSchemes(schemesData);
+    renderCrops();
+    updateRecentChats();
 });

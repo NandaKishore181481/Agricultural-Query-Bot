@@ -289,19 +289,21 @@
             </div>
         </section>
 
-        <!-- WEATHER VIEW (Mockup) -->
+        <!-- WEATHER VIEW -->
         <section id="weather-view" class="view-section">
             <div class="dashboard-grid">
                 <div class="weather-hero glass-panel">
                     <div class="weather-main">
-                        <div class="location-search">
-                            <i class="ph ph-map-pin"></i>
-                            <input type="text" class="glass-input" value="Hyderabad, Telangana" readonly>
+                        <div class="location-search" style="display: flex; gap: 10px; flex: 1;">
+                            <i class="ph ph-map-pin" style="align-self: center; font-size: 1.5rem; color: var(--primary);"></i>
+                            <input type="text" id="weather-location-input" class="glass-input" placeholder="Enter city (e.g., Hyderabad)" style="flex: 1;">
+                            <button class="btn btn-primary" onclick="fetchWeatherManual()"><i class="ph ph-magnifying-glass"></i></button>
+                            <button class="btn btn-secondary glass-btn" onclick="fetchWeatherGPS()" title="Use GPS"><i class="ph ph-crosshair"></i></button>
                         </div>
-                        <div class="current-temp">
-                            <i class="ph-fill ph-sun text-yellow"></i>
-                            <h1>32°C</h1>
-                            <p>Sunny & Clear</p>
+                        <div class="current-temp" style="margin-top: 20px;">
+                            <i id="weather-icon" class="ph-fill ph-sun text-yellow"></i>
+                            <h1 id="weather-temp">--°C</h1>
+                            <p id="weather-desc">Loading...</p>
                         </div>
                     </div>
                     <div class="weather-details">
@@ -309,21 +311,21 @@
                             <i class="ph ph-drop"></i>
                             <div>
                                 <span class="label">Humidity</span>
-                                <span class="value">45%</span>
+                                <span class="value" id="weather-humidity">--%</span>
                             </div>
                         </div>
                         <div class="detail-item">
                             <i class="ph ph-wind"></i>
                             <div>
                                 <span class="label">Wind</span>
-                                <span class="value">12 km/h</span>
+                                <span class="value" id="weather-wind">-- km/h</span>
                             </div>
                         </div>
                         <div class="detail-item">
                             <i class="ph ph-cloud-rain"></i>
                             <div>
                                 <span class="label">Rain Prob.</span>
-                                <span class="value">0%</span>
+                                <span class="value" id="weather-rain">--%</span>
                             </div>
                         </div>
                     </div>
@@ -331,85 +333,36 @@
                 
                 <div class="farming-advice glass-panel">
                     <h3><i class="ph-fill ph-lightbulb text-yellow"></i> AI Farming Advice</h3>
-                    <p>Current conditions are excellent for <strong>harvesting wheat</strong>. Avoid spraying chemicals during peak sun hours (12 PM - 3 PM) due to high evaporation rates. Soil moisture is low; consider irrigation this evening.</p>
+                    <p id="weather-advice">Please allow location access or search for a city to get personalized farming advice based on current weather conditions.</p>
                 </div>
             </div>
         </section>
 
-        <!-- MANDI VIEW (Mockup) -->
+        <!-- MANDI VIEW -->
         <section id="mandi-view" class="view-section">
             <h2 class="view-title">Live Mandi Prices</h2>
-            <div class="filter-bar glass-panel">
-                <select class="glass-input"><option>Telangana</option></select>
-                <select class="glass-input"><option>Hyderabad</option></select>
-                <input type="text" class="glass-input" placeholder="Search Crop...">
-                <button class="btn btn-primary">Search</button>
+            <div class="filter-bar glass-panel" style="display: flex; gap: 16px; margin-bottom: 24px; flex-wrap: wrap;">
+                <select class="glass-input" id="mandi-state"><option>Telangana</option><option>Andhra Pradesh</option></select>
+                <select class="glass-input" id="mandi-district"><option>Hyderabad</option><option>Kurnool</option></select>
+                <input type="text" id="mandi-search" class="glass-input" placeholder="Search Crop (e.g., Tomato)..." style="flex: 1;" onkeyup="filterMandi()">
             </div>
-            <div class="mandi-grid">
-                <div class="mandi-card glass-panel">
-                    <div class="crop-header">
-                        <h3>Tomato</h3>
-                        <span class="trend up"><i class="ph-bold ph-arrow-up-right"></i> +₹5</span>
-                    </div>
-                    <div class="price-big">₹45 <span>/ kg</span></div>
-                    <p class="market-name"><i class="ph ph-storefront"></i> Bowenpally Market</p>
-                    <p class="date">Updated: Today, 09:00 AM</p>
-                </div>
-                <div class="mandi-card glass-panel">
-                    <div class="crop-header">
-                        <h3>Onion</h3>
-                        <span class="trend down"><i class="ph-bold ph-arrow-down-right"></i> -₹2</span>
-                    </div>
-                    <div class="price-big">₹30 <span>/ kg</span></div>
-                    <p class="market-name"><i class="ph ph-storefront"></i> Bowenpally Market</p>
-                    <p class="date">Updated: Today, 09:00 AM</p>
-                </div>
-                <div class="mandi-card glass-panel">
-                    <div class="crop-header">
-                        <h3>Rice (Sona Masuri)</h3>
-                        <span class="trend neutral"><i class="ph-bold ph-minus"></i> ₹0</span>
-                    </div>
-                    <div class="price-big">₹55 <span>/ kg</span></div>
-                    <p class="market-name"><i class="ph ph-storefront"></i> Malakpet Market</p>
-                    <p class="date">Updated: Today, 09:00 AM</p>
-                </div>
+            <div class="mandi-grid" id="mandi-grid">
+                <!-- Dynamically populated via JS -->
             </div>
         </section>
 
-        <!-- SCHEMES VIEW (Mockup) -->
+        <!-- SCHEMES VIEW -->
         <section id="schemes-view" class="view-section">
             <h2 class="view-title">Government Schemes</h2>
-            <div class="schemes-list">
-                <div class="scheme-card glass-panel">
-                    <div class="scheme-content">
-                        <h3>PM Kisan Samman Nidhi</h3>
-                        <p class="scheme-desc">Financial benefit of ₹6,000 per year is provided to all landholding farmer families, payable in three equal installments of ₹2,000 each.</p>
-                        <div class="scheme-tags">
-                            <span class="tag">Financial Aid</span>
-                            <span class="tag">Central Govt</span>
-                        </div>
-                    </div>
-                    <div class="scheme-action">
-                        <button class="btn btn-primary">Check Eligibility</button>
-                    </div>
-                </div>
-                <div class="scheme-card glass-panel">
-                    <div class="scheme-content">
-                        <h3>Rythu Bandhu (Telangana)</h3>
-                        <p class="scheme-desc">Investment support scheme to support agriculture and horticulture crops by providing a grant of ₹5,000 per acre per farmer each season.</p>
-                        <div class="scheme-tags">
-                            <span class="tag">State Govt</span>
-                            <span class="tag">Investment</span>
-                        </div>
-                    </div>
-                    <div class="scheme-action">
-                        <button class="btn btn-primary">Check Eligibility</button>
-                    </div>
-                </div>
+            <div class="filter-bar glass-panel" style="display: flex; gap: 16px; margin-bottom: 24px;">
+                <input type="text" id="scheme-search" class="glass-input" placeholder="Search for schemes, subsidies..." style="flex: 1;" onkeyup="filterSchemes()">
+            </div>
+            <div class="schemes-list" id="schemes-list">
+                <!-- Dynamically populated via JS -->
             </div>
         </section>
 
-        <!-- DASHBOARD VIEW (Mockup) -->
+        <!-- DASHBOARD VIEW -->
         <section id="dashboard-view" class="view-section">
             <div class="profile-header glass-panel">
                 <img src="https://ui-avatars.com/api/?name=Farmer&background=2E7D32&color=fff&size=128" alt="Profile" class="profile-img">
@@ -422,19 +375,19 @@
             <div class="dashboard-grid">
                 <div class="dash-card glass-panel">
                     <h3>Recent AI Consultations</h3>
-                    <ul class="recent-list">
-                        <li><i class="ph ph-chat-circle"></i> Discussed Tomato Fertilizer <span class="date">Yesterday</span></li>
-                        <li><i class="ph ph-scan"></i> Scanned Pepper Leaf (Healthy) <span class="date">3 days ago</span></li>
+                    <ul class="recent-list" id="recent-chats-list">
+                        <li>No recent consultations. Start chatting with the AI Assistant!</li>
                     </ul>
                 </div>
                 <div class="dash-card glass-panel">
                     <h3>My Crops</h3>
-                    <div class="tags-container">
-                        <span class="crop-tag">Tomato</span>
-                        <span class="crop-tag">Bell Pepper</span>
-                        <span class="crop-tag">Rice</span>
+                    <div class="tags-container" id="my-crops-list">
+                        <!-- Populated by JS -->
                     </div>
-                    <button class="btn btn-secondary mt-3">Add Crop</button>
+                    <div style="display: flex; gap: 10px; margin-top: 20px;">
+                        <input type="text" id="new-crop-input" class="glass-input" placeholder="Add a crop (e.g., Wheat)">
+                        <button class="btn btn-secondary" onclick="addCrop()">Add</button>
+                    </div>
                 </div>
             </div>
         </section>
