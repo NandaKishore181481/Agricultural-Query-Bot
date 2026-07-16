@@ -14,35 +14,28 @@ def _load_model():
     global _model
     if _model is not None:
         return _model
-    try:
-        from keras.models import model_from_json
+    
+    from tensorflow.keras.models import model_from_json
 
-        json_path = os.path.join(MODEL_DIR, "new1model_architecture.json")
-        weights_path = os.path.join(MODEL_DIR, "new1model_weights.h5")
+    json_path = os.path.join(MODEL_DIR, "new1model_architecture.json")
+    weights_path = os.path.join(MODEL_DIR, "new1model_weights.h5")
 
-        with open(json_path, "r") as f:
-            loaded_model_json = f.read()
+    with open(json_path, "r") as f:
+        loaded_model_json = f.read()
 
-        _model = model_from_json(loaded_model_json)
-        _model.load_weights(weights_path)
-        logging.info("TensorFlow model loaded successfully.")
-        return _model
-    except ImportError:
-        logging.warning("TensorFlow not installed. Image prediction will be unavailable.")
-        return None
-    except Exception as e:
-        logging.error(f"Failed to load model: {e}")
-        return None
-
+    _model = model_from_json(loaded_model_json)
+    _model.load_weights(weights_path)
+    logging.info("TensorFlow model loaded successfully.")
+    return _model
 
 from .dict import return_disease, show, get_dict
 
-
 # Function to predict the class of an image
 def predict_image_class(image_path):
-    model = _load_model()
-    if model is None:
-        return {"error": "TensorFlow model failed to load. Check server logs."}
+    try:
+        model = _load_model()
+    except Exception as e:
+        return {"error": f"Model Load Error: {str(e)}"}
 
     try:
         from tensorflow.keras.utils import load_img, img_to_array
