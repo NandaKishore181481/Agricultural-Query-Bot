@@ -40,6 +40,15 @@ themeToggle.addEventListener('click', () => {
     themeToggle.innerHTML = isDark ? '<i class="ph ph-sun"></i>' : '<i class="ph ph-moon"></i>';
 });
 
+// ====== MOBILE MENU TOGGLE ======
+const mobileMenuBtn = document.querySelector('.mobile-menu-btn');
+const navbar = document.querySelector('.navbar');
+if (mobileMenuBtn && navbar) {
+    mobileMenuBtn.addEventListener('click', () => {
+        navbar.classList.toggle('nav-open');
+    });
+}
+
 
 // ====== AI CHAT LOGIC ======
 const chatInput = document.getElementById('chat-input');

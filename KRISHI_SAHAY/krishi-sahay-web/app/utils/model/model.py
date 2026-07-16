@@ -58,10 +58,9 @@ def predict_image_class(image_path):
         confidence = float(predictions[0][class_idx])
         logging.info(f"Predicted class index: {class_idx}, confidence: {confidence:.2f}")
 
-        # If model is not confident enough, treat as unrecognized
-        if confidence < 0.50:
-            logging.warning(f"Low confidence prediction ({confidence:.2f}). Returning None.")
-            return None
+        # The model will return its highest confidence prediction.
+        # Removed strict confidence threshold so it always predicts something.
+        # This prevents generic "Could not identify" errors on real but blurry leaves.
 
         # These keys MUST match exactly what get_dict() expects
         class_labels = [

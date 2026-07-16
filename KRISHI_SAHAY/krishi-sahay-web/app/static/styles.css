@@ -773,7 +773,23 @@ a {
 }
 
 @media (max-width: 768px) {
-    .nav-links { display: none; }
+    .nav-links { 
+        display: none; 
+        flex-direction: column;
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        background: var(--glass-bg);
+        padding: 20px;
+        border-radius: 16px;
+        backdrop-filter: blur(20px);
+        box-shadow: var(--glass-shadow);
+        gap: 10px;
+    }
+    .navbar.nav-open .nav-links {
+        display: flex;
+    }
     .mobile-menu-btn { display: block; }
     .stats-section { grid-template-columns: 1fr; }
     .features-grid { grid-template-columns: 1fr; }
