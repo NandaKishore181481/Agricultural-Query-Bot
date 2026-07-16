@@ -171,7 +171,6 @@ def api_transcribe():
             return jsonify({"error": "GEMINI_API_KEY missing"}), 400
             
         genai.configure(api_key=gemini_key)
-        model = genai.GenerativeModel('gemini-flash-latest')
         
         with open(filepath, "rb") as f:
             audio_bytes = f.read()
@@ -181,11 +180,21 @@ def api_transcribe():
             "data": audio_bytes
         }
         
-        response_trans = model.generate_content([
-            "Please transcribe this audio exactly as it is spoken.",
-            audio_data
-        ])
+        fallback_models = ["gemini-flash-latest", "gemini-2.5-flash", "gemini-2.0-flash", "gemini-pro-latest"]
+        response_trans = None
         
+        for model_name in fallback_models:
+            try:
+                model = genai.GenerativeModel(model_name)
+                response_trans = model.generate_content([
+                    "Please transcribe this audio exactly as it is spoken.",
+                    audio_data
+                ])
+                break # Success!
+            except Exception as e:
+                import logging
+                logging.warning(f"Transcription model {model_name} failed: {str(e)}")
+                
         # Cleanup
         try:
             os.remove(filepath)

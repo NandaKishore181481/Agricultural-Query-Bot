@@ -16,9 +16,6 @@ def predict_image_class(image_path):
         with open(image_path, "rb") as image_file:
             encoded_string = base64.b64encode(image_file.read()).decode("utf-8")
             
-        # Call Gemini REST API directly to bypass any old SDK version issues
-        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key={api_key}"
-        
         prompt = """
         You are an expert agricultural AI. 
         Analyze this plant leaf image. Is it healthy or does it have a disease?
@@ -49,15 +46,36 @@ def predict_image_class(image_path):
                 }
             ]
         }
+            
+        # Fallback list of models to try if the server is under high load (503)
+        fallback_models = [
+            "gemini-flash-latest", 
+            "gemini-2.5-flash", 
+            "gemini-2.0-flash", 
+            "gemini-pro-latest"
+        ]
         
+        response_data = None
+        status_code = None
         headers = {"Content-Type": "application/json"}
         
-        response = requests.post(url, headers=headers, data=json.dumps(payload))
-        response_data = response.json()
-        
-        if response.status_code != 200:
-            logging.error(f"Gemini API REST Error: {response_data}")
-            return {"error": f"API Error {response.status_code}: {response_data.get('error', {}).get('message', 'Unknown')}"}
+        for model_name in fallback_models:
+            url = f"https://generativelanguage.googleapis.com/v1beta/models/{model_name}:generateContent?key={api_key}"
+            try:
+                response = requests.post(url, headers=headers, data=json.dumps(payload))
+                status_code = response.status_code
+                response_data = response.json()
+                
+                if status_code == 200:
+                    break
+                else:
+                    logging.warning(f"Model {model_name} failed with {status_code}. Retrying...")
+            except Exception as e:
+                logging.warning(f"Model {model_name} network error: {e}")
+                
+        if status_code != 200:
+            logging.error(f"All Gemini models failed. Last Error: {response_data}")
+            return {"error": f"API Error {status_code}: {response_data.get('error', {}).get('message', 'All fallback models are currently experiencing high demand. Please try again in a few minutes.')}"}
             
         try:
             result = response_data["candidates"][0]["content"]["parts"][0]["text"].strip().replace("\"", "").replace("`", "")

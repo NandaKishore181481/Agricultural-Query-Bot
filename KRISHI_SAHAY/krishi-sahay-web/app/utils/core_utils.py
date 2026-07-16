@@ -506,7 +506,6 @@ def process_whatsapp_message(body):
                 raise Exception("GEMINI_API_KEY is missing in .env")
             
             genai.configure(api_key=gemini_key)
-            model = genai.GenerativeModel('gemini-flash-latest')
             
             with open(audio_filename, "rb") as f:
                 audio_bytes = f.read()
@@ -516,11 +515,23 @@ def process_whatsapp_message(body):
                 "data": audio_bytes
             }
             
-            response_trans = model.generate_content([
-                "Please transcribe this audio exactly as it is spoken, in the same language as the speaker.",
-                audio_data
-            ])
+            fallback_models = ["gemini-flash-latest", "gemini-2.5-flash", "gemini-2.0-flash", "gemini-pro-latest"]
+            response_trans = None
             
+            for model_name in fallback_models:
+                try:
+                    model = genai.GenerativeModel(model_name)
+                    response_trans = model.generate_content([
+                        "Please transcribe this audio exactly as it is spoken, in the same language as the speaker.",
+                        audio_data
+                    ])
+                    break
+                except Exception as e:
+                    logging.warning(f"Transcription model {model_name} failed: {str(e)}")
+            
+            if response_trans is None:
+                raise Exception("All fallback transcription models failed.")
+                
             message_body = response_trans.text
             logging.info(f"Transcribed audio with Gemini: {message_body}")
 
