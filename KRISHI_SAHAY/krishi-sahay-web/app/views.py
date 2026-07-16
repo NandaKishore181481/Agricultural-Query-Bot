@@ -173,10 +173,17 @@ def api_transcribe():
         genai.configure(api_key=gemini_key)
         model = genai.GenerativeModel('gemini-flash-latest')
         
-        audio_file = genai.upload_file(path=filepath)
+        with open(filepath, "rb") as f:
+            audio_bytes = f.read()
+            
+        audio_data = {
+            "mime_type": "audio/webm",
+            "data": audio_bytes
+        }
+        
         response_trans = model.generate_content([
             "Please transcribe this audio exactly as it is spoken.",
-            audio_file
+            audio_data
         ])
         
         # Cleanup

@@ -508,11 +508,17 @@ def process_whatsapp_message(body):
             genai.configure(api_key=gemini_key)
             model = genai.GenerativeModel('gemini-flash-latest')
             
-            # Upload the file to Gemini
-            audio_file = genai.upload_file(path=audio_filename)
+            with open(audio_filename, "rb") as f:
+                audio_bytes = f.read()
+                
+            audio_data = {
+                "mime_type": "audio/ogg",
+                "data": audio_bytes
+            }
+            
             response_trans = model.generate_content([
                 "Please transcribe this audio exactly as it is spoken, in the same language as the speaker.",
-                audio_file
+                audio_data
             ])
             
             message_body = response_trans.text
