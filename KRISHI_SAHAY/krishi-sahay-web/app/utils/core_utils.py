@@ -506,7 +506,7 @@ def process_whatsapp_message(body):
                 raise Exception("GEMINI_API_KEY is missing in .env")
             
             genai.configure(api_key=gemini_key)
-            model = genai.GenerativeModel('gemini-1.5-flash')
+            model = genai.GenerativeModel('gemini-flash-latest')
             
             # Upload the file to Gemini
             audio_file = genai.upload_file(path=audio_filename)
