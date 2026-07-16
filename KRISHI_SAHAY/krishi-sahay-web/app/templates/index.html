@@ -3,43 +3,434 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Krishi Sahay - AI Crop Doctor</title>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&display=swap" rel="stylesheet">
+    <title>Krishi Sahay - AI Farming Assistant</title>
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Phosphor Icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <!-- Custom CSS -->
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
 </head>
-<body>
-    <div class="app-container">
-        <header class="app-header">
-            <div class="logo">
-                <h1>Krishi Sahay ☘️</h1>
-                <p>Your AI Crop Doctor</p>
-            </div>
-            <div class="lang-selector">
-                <select id="language" onchange="changeLanguage()">
-                    <option value="en">English</option>
-                    <option value="hi">हिंदी</option>
-                    <option value="te">తెలుగు</option>
-                </select>
-            </div>
-        </header>
+<body class="light-mode">
+    
+    <!-- Background Elements -->
+    <div class="bg-shape shape-1"></div>
+    <div class="bg-shape shape-2"></div>
+    <div class="bg-shape shape-3"></div>
 
-        <div class="chat-container" id="chat-box">
-            <div class="message bot">
-                Hello! I am Krishi Sahay. Ask me anything about agriculture, or upload a picture of a tomato or pepper leaf for disease detection!
-            </div>
+    <!-- Navigation -->
+    <nav class="navbar glass-panel">
+        <div class="nav-brand">
+            <i class="ph-fill ph-plant"></i>
+            <span>Krishi Sahay</span>
         </div>
-
-        <div class="input-area">
-            <button class="upload-btn" onclick="document.getElementById('file-input').click()">
-                📷
+        <div class="nav-links">
+            <a href="#" class="nav-item active" data-target="home-view">Home</a>
+            <a href="#" class="nav-item" data-target="ai-chat-view">AI Assistant</a>
+            <a href="#" class="nav-item" data-target="disease-view">Crop Disease</a>
+            <a href="#" class="nav-item" data-target="weather-view">Weather</a>
+            <a href="#" class="nav-item" data-target="mandi-view">Mandi Prices</a>
+            <a href="#" class="nav-item" data-target="schemes-view">Schemes</a>
+            <a href="#" class="nav-item" data-target="dashboard-view">Dashboard</a>
+        </div>
+        <div class="nav-actions">
+            <select class="lang-select glass-input">
+                <option value="en">English</option>
+                <option value="hi">हिंदी</option>
+                <option value="te">తెలుగు</option>
+            </select>
+            <button class="icon-btn" id="theme-toggle" title="Toggle Dark Mode">
+                <i class="ph ph-moon"></i>
             </button>
-            <input type="file" id="file-input" style="display: none;" accept="image/*" onchange="handleImageUpload(this)">
-            
-            <input type="text" id="chat-input" placeholder="Type your message..." onkeypress="handleEnter(event)">
-            <button class="send-btn" onclick="sendMessage()">Send</button>
+            <div class="user-profile">
+                <img src="https://ui-avatars.com/api/?name=Farmer&background=2E7D32&color=fff" alt="User">
+            </div>
+            <button class="mobile-menu-btn icon-btn">
+                <i class="ph ph-list"></i>
+            </button>
         </div>
-    </div>
+    </nav>
 
+    <!-- Main Content Area -->
+    <main class="main-content">
+        
+        <!-- HOME VIEW -->
+        <section id="home-view" class="view-section active">
+            <!-- Hero -->
+            <div class="hero-section">
+                <div class="hero-content">
+                    <h1 class="hero-title">Your Intelligent <br><span class="gradient-text">AI Farming Assistant</span></h1>
+                    <p class="hero-subtitle">Empowering farmers with state-of-the-art artificial intelligence for crop disease detection, smart agronomy, and instant market insights.</p>
+                    <div class="hero-ctas">
+                        <button class="btn btn-primary" onclick="switchView('ai-chat-view')">
+                            <i class="ph-fill ph-chat-circle-dots"></i> Start AI Chat
+                        </button>
+                        <button class="btn btn-secondary glass-btn" onclick="switchView('disease-view')">
+                            <i class="ph-fill ph-scan"></i> Scan Crop Disease
+                        </button>
+                    </div>
+                </div>
+                <div class="hero-visual">
+                    <div class="floating-card glass-panel card-1">
+                        <i class="ph-fill ph-leaf text-green"></i> 98% Disease Accuracy
+                    </div>
+                    <div class="floating-card glass-panel card-2">
+                        <i class="ph-fill ph-cloud-sun text-blue"></i> Real-time Weather
+                    </div>
+                    <!-- Central visual element -->
+                    <div class="hero-globe glass-panel">
+                        <i class="ph-fill ph-plant pulse-icon"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Statistics -->
+            <div class="stats-section">
+                <div class="stat-card glass-panel">
+                    <h3 class="stat-value">50K+</h3>
+                    <p class="stat-label">Farmers Helped</p>
+                </div>
+                <div class="stat-card glass-panel">
+                    <h3 class="stat-value">120K</h3>
+                    <p class="stat-label">AI Conversations</p>
+                </div>
+                <div class="stat-card glass-panel">
+                    <h3 class="stat-value">98.5%</h3>
+                    <p class="stat-label">Prediction Accuracy</p>
+                </div>
+                <div class="stat-card glass-panel">
+                    <h3 class="stat-value">15+</h3>
+                    <p class="stat-label">Gov Schemes Added</p>
+                </div>
+            </div>
+
+            <!-- Features -->
+            <div class="features-section">
+                <h2 class="section-title">Everything you need to thrive</h2>
+                <div class="features-grid">
+                    <div class="feature-card glass-panel">
+                        <div class="feature-icon"><i class="ph-fill ph-robot"></i></div>
+                        <h3>AI Farming Chatbot</h3>
+                        <p>Ask anything about agriculture, fertilizers, and pest management in your local language.</p>
+                    </div>
+                    <div class="feature-card glass-panel">
+                        <div class="feature-icon"><i class="ph-fill ph-scan"></i></div>
+                        <h3>Disease Detection</h3>
+                        <p>Upload a photo of a sick leaf and instantly get diagnosis, causes, and treatments.</p>
+                    </div>
+                    <div class="feature-card glass-panel">
+                        <div class="feature-icon"><i class="ph-fill ph-cloud-sun"></i></div>
+                        <h3>Smart Weather</h3>
+                        <p>Hyper-local weather forecasts tailored specifically for farming activities.</p>
+                    </div>
+                    <div class="feature-card glass-panel">
+                        <div class="feature-icon"><i class="ph-fill ph-currency-inr"></i></div>
+                        <h3>Mandi Prices</h3>
+                        <p>Live market prices for crops in your district to ensure you get the best deal.</p>
+                    </div>
+                    <div class="feature-card glass-panel">
+                        <div class="feature-icon"><i class="ph-fill ph-file-text"></i></div>
+                        <h3>Govt Schemes</h3>
+                        <p>Discover and check eligibility for agricultural subsidies and government schemes.</p>
+                    </div>
+                    <div class="feature-card glass-panel">
+                        <div class="feature-icon"><i class="ph-fill ph-calendar-check"></i></div>
+                        <h3>Crop Calendar</h3>
+                        <p>Get personalized reminders for sowing, fertilizing, and harvesting your crops.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Footer -->
+            <footer class="glass-panel main-footer">
+                <div class="footer-content">
+                    <div class="footer-brand">
+                        <h3><i class="ph-fill ph-plant"></i> Krishi Sahay</h3>
+                        <p>Empowering Indian agriculture through Artificial Intelligence.</p>
+                    </div>
+                    <div class="footer-links">
+                        <a href="#">About</a>
+                        <a href="#">Privacy Policy</a>
+                        <a href="#">Terms of Service</a>
+                        <a href="#">Contact Us</a>
+                    </div>
+                    <div class="footer-social">
+                        <a href="#"><i class="ph-fill ph-twitter-logo"></i></a>
+                        <a href="#"><i class="ph-fill ph-facebook-logo"></i></a>
+                        <a href="#"><i class="ph-fill ph-youtube-logo"></i></a>
+                    </div>
+                </div>
+                <div class="footer-bottom">
+                    <p>&copy; 2026 Krishi Sahay AI. All rights reserved.</p>
+                </div>
+            </footer>
+        </section>
+
+        <!-- AI CHAT VIEW -->
+        <section id="ai-chat-view" class="view-section">
+            <div class="chat-container glass-panel">
+                <div class="chat-header">
+                    <div class="ai-avatar">
+                        <i class="ph-fill ph-robot"></i>
+                    </div>
+                    <div class="ai-info">
+                        <h2>Krishi Sahay Assistant</h2>
+                        <span class="status-indicator"><span class="dot"></span> Online</span>
+                    </div>
+                    <div class="chat-actions">
+                        <button class="icon-btn" title="Export PDF"><i class="ph ph-download-simple"></i></button>
+                        <button class="icon-btn" title="Clear Chat" onclick="clearChat()"><i class="ph ph-trash"></i></button>
+                    </div>
+                </div>
+                
+                <div class="chat-messages" id="chat-messages">
+                    <div class="message ai-message">
+                        <div class="message-avatar"><i class="ph-fill ph-robot"></i></div>
+                        <div class="message-content glass-bubble">
+                            <p>Hello! I am Krishi Sahay, your AI farming assistant. How can I help you today?</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="chat-input-area">
+                    <div class="suggested-prompts">
+                        <button class="prompt-chip">What fertilizer for tomatoes?</button>
+                        <button class="prompt-chip">How to prevent whiteflies?</button>
+                        <button class="prompt-chip">When to harvest wheat?</button>
+                    </div>
+                    <div class="input-wrapper glass-input-wrapper">
+                        <button class="icon-btn" title="Upload Image" onclick="switchView('disease-view')"><i class="ph ph-image"></i></button>
+                        <input type="text" id="chat-input" placeholder="Ask anything about farming..." onkeypress="handleChatEnter(event)">
+                        <button class="icon-btn mic-btn" title="Voice Input"><i class="ph ph-microphone"></i></button>
+                        <button class="btn btn-primary send-btn" onclick="sendMessage()">
+                            <i class="ph-fill ph-paper-plane-right"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- DISEASE DETECTION VIEW -->
+        <section id="disease-view" class="view-section">
+            <div class="disease-container">
+                <div class="upload-section glass-panel">
+                    <h2>Crop Disease Scanner</h2>
+                    <p>Upload a clear photo of the affected plant leaf.</p>
+                    
+                    <div class="drop-zone" id="drop-zone" onclick="document.getElementById('file-input').click()">
+                        <i class="ph ph-upload-simple drop-icon"></i>
+                        <span class="drop-text">Drag & drop image here or click to browse</span>
+                        <input type="file" id="file-input" hidden accept="image/jpeg, image/png, image/jpg" onchange="handleFileSelect(event)">
+                    </div>
+                    
+                    <div class="image-preview-container" id="preview-container" style="display: none;">
+                        <img id="image-preview" src="" alt="Preview">
+                        <button class="btn btn-secondary" onclick="resetUpload()">Choose another</button>
+                        <button class="btn btn-primary" onclick="analyzeImage()" id="analyze-btn">
+                            <i class="ph-fill ph-magic-wand"></i> Analyze Image
+                        </button>
+                    </div>
+
+                    <div class="scanning-animation" id="scanning-anim" style="display: none;">
+                        <div class="scanner-bar"></div>
+                        <p>AI is analyzing the leaf patterns...</p>
+                    </div>
+                </div>
+
+                <!-- Results Card (Hidden by default) -->
+                <div class="results-section glass-panel" id="results-card" style="display: none;">
+                    <div class="result-header">
+                        <h2 id="disease-name">Tomato Yellow Leaf Curl Virus</h2>
+                        <div class="confidence-badge">98% Match</div>
+                    </div>
+                    
+                    <div class="severity-indicator">
+                        <span>Severity:</span>
+                        <div class="severity-bar high">High</div>
+                    </div>
+                    
+                    <div class="result-tabs">
+                        <button class="tab-btn active" data-tab="info">Information</button>
+                        <button class="tab-btn" data-tab="treatment">Treatment</button>
+                    </div>
+                    
+                    <div class="tab-content active" id="tab-info">
+                        <h4>Description</h4>
+                        <p id="disease-desc">A destructive viral disease transmitted by whiteflies...</p>
+                        <h4>Symptoms</h4>
+                        <p id="disease-symptoms">Upward curling of leaves, yellowing margins, stunted growth.</p>
+                    </div>
+                    
+                    <div class="tab-content" id="tab-treatment">
+                        <h4>Organic Treatment</h4>
+                        <ul id="organic-treatment">
+                            <li>Use neem oil spray.</li>
+                            <li>Introduce ladybugs.</li>
+                        </ul>
+                        <h4>Chemical Treatment</h4>
+                        <ul id="chemical-treatment">
+                            <li>Apply Imidacloprid.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- WEATHER VIEW (Mockup) -->
+        <section id="weather-view" class="view-section">
+            <div class="dashboard-grid">
+                <div class="weather-hero glass-panel">
+                    <div class="weather-main">
+                        <div class="location-search">
+                            <i class="ph ph-map-pin"></i>
+                            <input type="text" class="glass-input" value="Hyderabad, Telangana" readonly>
+                        </div>
+                        <div class="current-temp">
+                            <i class="ph-fill ph-sun text-yellow"></i>
+                            <h1>32°C</h1>
+                            <p>Sunny & Clear</p>
+                        </div>
+                    </div>
+                    <div class="weather-details">
+                        <div class="detail-item">
+                            <i class="ph ph-drop"></i>
+                            <div>
+                                <span class="label">Humidity</span>
+                                <span class="value">45%</span>
+                            </div>
+                        </div>
+                        <div class="detail-item">
+                            <i class="ph ph-wind"></i>
+                            <div>
+                                <span class="label">Wind</span>
+                                <span class="value">12 km/h</span>
+                            </div>
+                        </div>
+                        <div class="detail-item">
+                            <i class="ph ph-cloud-rain"></i>
+                            <div>
+                                <span class="label">Rain Prob.</span>
+                                <span class="value">0%</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="farming-advice glass-panel">
+                    <h3><i class="ph-fill ph-lightbulb text-yellow"></i> AI Farming Advice</h3>
+                    <p>Current conditions are excellent for <strong>harvesting wheat</strong>. Avoid spraying chemicals during peak sun hours (12 PM - 3 PM) due to high evaporation rates. Soil moisture is low; consider irrigation this evening.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- MANDI VIEW (Mockup) -->
+        <section id="mandi-view" class="view-section">
+            <h2 class="view-title">Live Mandi Prices</h2>
+            <div class="filter-bar glass-panel">
+                <select class="glass-input"><option>Telangana</option></select>
+                <select class="glass-input"><option>Hyderabad</option></select>
+                <input type="text" class="glass-input" placeholder="Search Crop...">
+                <button class="btn btn-primary">Search</button>
+            </div>
+            <div class="mandi-grid">
+                <div class="mandi-card glass-panel">
+                    <div class="crop-header">
+                        <h3>Tomato</h3>
+                        <span class="trend up"><i class="ph-bold ph-arrow-up-right"></i> +₹5</span>
+                    </div>
+                    <div class="price-big">₹45 <span>/ kg</span></div>
+                    <p class="market-name"><i class="ph ph-storefront"></i> Bowenpally Market</p>
+                    <p class="date">Updated: Today, 09:00 AM</p>
+                </div>
+                <div class="mandi-card glass-panel">
+                    <div class="crop-header">
+                        <h3>Onion</h3>
+                        <span class="trend down"><i class="ph-bold ph-arrow-down-right"></i> -₹2</span>
+                    </div>
+                    <div class="price-big">₹30 <span>/ kg</span></div>
+                    <p class="market-name"><i class="ph ph-storefront"></i> Bowenpally Market</p>
+                    <p class="date">Updated: Today, 09:00 AM</p>
+                </div>
+                <div class="mandi-card glass-panel">
+                    <div class="crop-header">
+                        <h3>Rice (Sona Masuri)</h3>
+                        <span class="trend neutral"><i class="ph-bold ph-minus"></i> ₹0</span>
+                    </div>
+                    <div class="price-big">₹55 <span>/ kg</span></div>
+                    <p class="market-name"><i class="ph ph-storefront"></i> Malakpet Market</p>
+                    <p class="date">Updated: Today, 09:00 AM</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- SCHEMES VIEW (Mockup) -->
+        <section id="schemes-view" class="view-section">
+            <h2 class="view-title">Government Schemes</h2>
+            <div class="schemes-list">
+                <div class="scheme-card glass-panel">
+                    <div class="scheme-content">
+                        <h3>PM Kisan Samman Nidhi</h3>
+                        <p class="scheme-desc">Financial benefit of ₹6,000 per year is provided to all landholding farmer families, payable in three equal installments of ₹2,000 each.</p>
+                        <div class="scheme-tags">
+                            <span class="tag">Financial Aid</span>
+                            <span class="tag">Central Govt</span>
+                        </div>
+                    </div>
+                    <div class="scheme-action">
+                        <button class="btn btn-primary">Check Eligibility</button>
+                    </div>
+                </div>
+                <div class="scheme-card glass-panel">
+                    <div class="scheme-content">
+                        <h3>Rythu Bandhu (Telangana)</h3>
+                        <p class="scheme-desc">Investment support scheme to support agriculture and horticulture crops by providing a grant of ₹5,000 per acre per farmer each season.</p>
+                        <div class="scheme-tags">
+                            <span class="tag">State Govt</span>
+                            <span class="tag">Investment</span>
+                        </div>
+                    </div>
+                    <div class="scheme-action">
+                        <button class="btn btn-primary">Check Eligibility</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- DASHBOARD VIEW (Mockup) -->
+        <section id="dashboard-view" class="view-section">
+            <div class="profile-header glass-panel">
+                <img src="https://ui-avatars.com/api/?name=Farmer&background=2E7D32&color=fff&size=128" alt="Profile" class="profile-img">
+                <div class="profile-info">
+                    <h2>Welcome back, Farmer</h2>
+                    <p>Member since Jan 2026</p>
+                </div>
+            </div>
+            
+            <div class="dashboard-grid">
+                <div class="dash-card glass-panel">
+                    <h3>Recent AI Consultations</h3>
+                    <ul class="recent-list">
+                        <li><i class="ph ph-chat-circle"></i> Discussed Tomato Fertilizer <span class="date">Yesterday</span></li>
+                        <li><i class="ph ph-scan"></i> Scanned Pepper Leaf (Healthy) <span class="date">3 days ago</span></li>
+                    </ul>
+                </div>
+                <div class="dash-card glass-panel">
+                    <h3>My Crops</h3>
+                    <div class="tags-container">
+                        <span class="crop-tag">Tomato</span>
+                        <span class="crop-tag">Bell Pepper</span>
+                        <span class="crop-tag">Rice</span>
+                    </div>
+                    <button class="btn btn-secondary mt-3">Add Crop</button>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Custom JS -->
     <script src="{{ url_for('static', filename='app.js') }}"></script>
 </body>
 </html>
