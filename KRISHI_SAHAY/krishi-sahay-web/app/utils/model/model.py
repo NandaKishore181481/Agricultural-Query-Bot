@@ -17,6 +17,11 @@ def _load_model():
     if _model is not None:
         return _model
     
+    import tensorflow as tf
+    # Limit threads to reduce memory overhead on Render's 512MB free tier
+    tf.config.threading.set_intra_op_parallelism_threads(1)
+    tf.config.threading.set_inter_op_parallelism_threads(1)
+    
     from tensorflow.keras.models import model_from_json
 
     json_path = os.path.join(MODEL_DIR, "new1model_architecture.json")
@@ -28,6 +33,16 @@ def _load_model():
     _model = model_from_json(loaded_model_json)
     _model.load_weights(weights_path)
     logging.info("TensorFlow model loaded successfully.")
+    
+    # Run a dummy prediction to force TensorFlow to allocate memory now,
+    # rather than spiking and causing an OOM kill during a user request.
+    try:
+        dummy_input = np.zeros((1, 160, 160, 3), dtype=np.float32)
+        _model.predict(dummy_input, verbose=0)
+        logging.info("Dummy prediction successful. Memory pre-allocated.")
+    except Exception as e:
+        logging.warning(f"Dummy prediction failed: {e}")
+        
     return _model
 
 # Eagerly load the model when the server starts up
