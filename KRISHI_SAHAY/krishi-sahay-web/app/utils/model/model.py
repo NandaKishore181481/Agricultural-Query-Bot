@@ -62,7 +62,7 @@ def predict_image_class(image_path):
         for model_name in fallback_models:
             url = f"https://generativelanguage.googleapis.com/v1beta/models/{model_name}:generateContent?key={api_key}"
             try:
-                response = requests.post(url, headers=headers, data=json.dumps(payload))
+                response = requests.post(url, headers=headers, data=json.dumps(payload), timeout=10)
                 status_code = response.status_code
                 response_data = response.json()
                 
@@ -74,8 +74,11 @@ def predict_image_class(image_path):
                 logging.warning(f"Model {model_name} network error: {e}")
                 
         if status_code != 200:
+            error_msg = "All fallback models are currently experiencing high demand. Please try again in a few minutes."
+            if response_data and 'error' in response_data:
+                error_msg = response_data['error'].get('message', error_msg)
             logging.error(f"All Gemini models failed. Last Error: {response_data}")
-            return {"error": f"API Error {status_code}: {response_data.get('error', {}).get('message', 'All fallback models are currently experiencing high demand. Please try again in a few minutes.')}"}
+            return {"error": f"API Error {status_code}: {error_msg}"}
             
         try:
             result = response_data["candidates"][0]["content"]["parts"][0]["text"].strip().replace("\"", "").replace("`", "")
