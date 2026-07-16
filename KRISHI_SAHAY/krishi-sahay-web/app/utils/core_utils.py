@@ -515,9 +515,10 @@ def process_whatsapp_message(body):
                 "data": audio_bytes
             }
             
-            fallback_models = ["gemini-flash-latest", "gemini-2.5-flash", "gemini-2.0-flash"]
+            fallback_models = ["gemini-flash-latest", "gemini-flash-latest", "gemini-flash-latest"]
             response_trans = None
             
+            import time
             for model_name in fallback_models:
                 try:
                     model = genai.GenerativeModel(model_name)
@@ -528,6 +529,7 @@ def process_whatsapp_message(body):
                     break
                 except Exception as e:
                     logging.warning(f"Transcription model {model_name} failed: {str(e)}")
+                    time.sleep(2)
             
             if response_trans is None:
                 raise Exception("All fallback transcription models failed.")

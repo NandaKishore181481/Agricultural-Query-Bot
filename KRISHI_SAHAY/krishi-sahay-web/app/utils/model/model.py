@@ -47,17 +47,18 @@ def predict_image_class(image_path):
             ]
         }
             
-        # Fallback list of models to try if the server is under high load (503)
+        # Since free tier only has access to gemini-flash-latest, we just retry the same model
         fallback_models = [
             "gemini-flash-latest", 
-            "gemini-2.5-flash", 
-            "gemini-2.0-flash"
+            "gemini-flash-latest", 
+            "gemini-flash-latest"
         ]
         
         response_data = None
         status_code = None
         headers = {"Content-Type": "application/json"}
         
+        import time
         for model_name in fallback_models:
             url = f"https://generativelanguage.googleapis.com/v1beta/models/{model_name}:generateContent?key={api_key}"
             try:
@@ -73,9 +74,11 @@ def predict_image_class(image_path):
                 if status_code == 200 and response_data:
                     break
                 else:
-                    logging.warning(f"Model {model_name} failed with {status_code}. Retrying...")
+                    logging.warning(f"Model {model_name} failed with {status_code}. Retrying in 2s...")
+                    time.sleep(2)
             except Exception as e:
-                logging.warning(f"Model {model_name} network error: {e}")
+                logging.warning(f"Model {model_name} network error: {e}. Retrying in 2s...")
+                time.sleep(2)
                 
         if status_code != 200:
             error_msg = "All fallback models are currently experiencing high demand. Please try again in a few minutes."
